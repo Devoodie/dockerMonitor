@@ -2,37 +2,32 @@ package main
 
 import (
 	"context"
+	"encoding/json"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"net"
+	"io"
+	"log"
 	"net/http"
-	"net/rpc"
 )
 
 func dockerps() []types.Container {
-	ctx := context.Background()
 	cli, err := client.NewClientWithOpts(client.FromEnv, client.WithAPIVersionNegotiation())
 	if err != nil {
 		panic(err)
 	}
-	containers, err := cli.ContainerList(ctx, types.ContainerListOptions{})
+	containers, err := cli.ContainerList(context.Background(), types.ContainerListOptions{})
 	if err != nil {
 		panic(err)
 	}
 	return containers
 }
+
 func main() {
-	test := 1
-	rpc.Register(test)
-	rpc.HandleHTTP()
-	line, err := net.Listen("tcp", ":45000")
-	if err != nil {
-		panic(err)
+	containerdata := func(w http.ResponseWriter, _ *http.Request) {
+		w.Header().Set("Content-Type", "application/json")
+		containers, _ := json.Marshal(dockerps())
+		io.WriteString(w, string(containers))
 	}
-	go func() {
-		err := http.Serve(line, nil)
-		if err != nil {
-			panic(err)
-		}
-	}()
+	http.HandleFunc("/dockerps", containerdata)
+	log.Fatal(http.ListenAndServe(":45000", nil))
 }
