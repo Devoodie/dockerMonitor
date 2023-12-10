@@ -28,5 +28,5 @@ func main() {
 		w.Write(containers)
 	}
 	http.HandleFunc("/dockerps", containerdata)
-	log.Fatal(http.ListenAndServe(":45000", nil))
+	log.Fatal(http.ListenAndServe("0.0.0.0:45000", nil))
 }
