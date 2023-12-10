@@ -5,7 +5,6 @@ import (
 	"encoding/json"
 	"github.com/docker/docker/api/types"
 	"github.com/docker/docker/client"
-	"io"
 	"log"
 	"net/http"
 )
@@ -26,7 +25,7 @@ func main() {
 	containerdata := func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		containers, _ := json.Marshal(dockerps())
-		io.WriteString(w, string(containers))
+		w.Write(containers)
 	}
 	http.HandleFunc("/dockerps", containerdata)
 	log.Fatal(http.ListenAndServe(":45000", nil))
